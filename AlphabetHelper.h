@@ -3,26 +3,28 @@
 
 #include <map>
 #include <string>
+#include <fstream>
 
 class AlphabetHelper {
 public:
 
-    std::map<char, int> createFrequencyMap(const std::string& str) {
-        std::map<char, int> result;
-        for (char ch : str) {
+    std::map<wchar_t, int> createFrequencyMap(const std::wstring& str) {
+        std::map<wchar_t, int> result;
+        for (wchar_t ch : str) {
             result[ch] ++;
         }
 
         return result;
     }
 
-    std::map<char, int> createFrequencyMap(std::istream& is) {
-        std::map<char, int> result;
-        std::string str;
+    std::map<wchar_t, int> createFrequencyMap(std::wistream& wis) {
+        std::map<wchar_t, int> result;
+        std::wstring str;
 
-        while (!is.eof()) {
-           std::getline(is, str);
-           for (char ch: str) {
+        while (!wis.eof()) {
+            std::getline(wis, str);
+           std::getline(wis, str);
+           for (wchar_t ch: str) {
                result[ch]++;
            }
         }

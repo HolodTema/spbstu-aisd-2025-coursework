@@ -4,4 +4,6 @@ project(coursework)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(coursework main.cpp
-        AlphabetHelper.h)
+        AlphabetHelper.h
+        CodeHelper.h
+        StreamGuard.h)
