@@ -4,20 +4,21 @@
 #include <algorithm>
 #include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 
 class CodeHelper {
 public:
 
-    std::pair<std::wstring, std::map<std::wstring, wchar_t>> encodeString(const std::wstring& str) {
+    std::pair<std::wstring, std::unordered_map<std::wstring, wchar_t>> encodeString(const std::wstring& str) {
         std::pair<std::vector<CharInfo>, int> pair = createFrequencyVector(str);
         std::vector<CharInfo> frequencyVector = pair.first;
         int frequencyAmount = pair.second;
 
         generateCode(frequencyVector.begin(), frequencyVector.end(), frequencyAmount);
 
-        std::map<wchar_t, std::wstring> codesMap;
+        std::unordered_map<wchar_t, std::wstring> codesMap;
         for (CharInfo charInfo : frequencyVector) {
             codesMap[charInfo.getChar()] = charInfo.getCode();
         }
@@ -27,12 +28,13 @@ public:
             result += codesMap[ch];
         }
 
-        std::map<std::wstring, wchar_t> mapCodesInversed = inverseMap(codesMap);
+        std::unordered_map<std::wstring, wchar_t> mapCodesInversed = inverseMap(codesMap);
 
         return std::make_pair(result, mapCodesInversed);
     }
 
-    std::wstring decodeString(const std::wstring& encodedStr, const std::map<std::wstring, wchar_t>& mapCodes) {
+
+    std::wstring decodeString(const std::wstring& encodedStr, const std::unordered_map<std::wstring, wchar_t>& mapCodes) {
         std::wstring result;
         std::wstring code;
 
@@ -47,6 +49,8 @@ public:
         }
         return result;
     }
+
+
 
 private:
 
@@ -123,9 +127,9 @@ private:
     }
 
     template<typename K, typename V>
-    std::map<V, K> inverseMap(const std::map<K, V>& map) {
-        std::map<V, K> result;
-        for (typename std::map<K, V>::const_iterator it = map.cbegin(); it != map.cend(); ++it) {
+    std::unordered_map<V, K> inverseMap(const std::unordered_map<K, V>& map) {
+        std::unordered_map<V, K> result;
+        for (typename std::unordered_map<K, V>::const_iterator it = map.cbegin(); it != map.cend(); ++it) {
             result[it->second] = it->first;
         }
         return result;

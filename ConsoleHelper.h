@@ -137,9 +137,9 @@ private:
 
         }
         else {
-            std::pair<std::wstring, std::map<std::wstring, wchar_t>> pair = helper.encodeString(text);
+            std::pair<std::wstring, std::unordered_map<std::wstring, wchar_t>> pair = helper.encodeString(text);
             std::wstring result = pair.first;
-            std::map<std::wstring, wchar_t> mapCodes = pair.second;
+            std::unordered_map<std::wstring, wchar_t> mapCodes = pair.second;
 
             std::wstring encodingCodes = convertMapCodesToString(mapCodes);
             bool isSuccessful = saveEncodingResults(result, encodingCodes);
@@ -230,7 +230,7 @@ private:
         return true;
     }
 
-    static std::wstring convertMapCodesToString(const std::map<std::wstring, wchar_t>& mapCodes) {
+    static std::wstring convertMapCodesToString(const std::unordered_map<std::wstring, wchar_t>& mapCodes) {
         std::wstring result;
         for (auto it = mapCodes.begin(); it != mapCodes.end(); it++) {
             result += it->second;
