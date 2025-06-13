@@ -5,7 +5,7 @@
 #include <fstream>
 #include <locale>
 #include <thread>
-#include <bits/chrono.h>
+#include <sstream>
 
 #include "CodeHelper.h"
 
@@ -39,17 +39,11 @@ public:
         }
 
         bool isBitMode = optionEncodeDecode == 2 || optionEncodeDecode == 4;
-        if (optionEncodeDecode == 1) {
+        if (optionEncodeDecode == 1 || optionEncodeDecode == 2) {
             onOptionEncodeChosen(isEnglish, isBitMode);
         }
-        else if (optionEncodeDecode == 2) {
-
-        }
-        else if (optionEncodeDecode == 3) {
+        else if (optionEncodeDecode == 3 || optionEncodeDecode == 4) {
             onOptionDecodeChosen(isEnglish, isBitMode);
-        }
-        else if (optionEncodeDecode == 4) {
-
         }
         else {
             return onErrorInvalidOption();
@@ -114,12 +108,7 @@ private:
                 return onErrorUnableToOpenFileToRead();
             }
 
-            std::wstring fileLine;
-            std::wstring text;
-            while (std::getline(in, fileLine)) {
-                text += fileLine;
-            }
-            in.close();
+            std::wstring text = readFile(in);
 
             if (text.size() == 0) {
                 return onErrorEmptyText();
@@ -130,14 +119,14 @@ private:
         return 0;
     }
 
-    static int onEncodeNonEnglish(std::wstring text, bool isBitMode) {
+    static int onEncodeNonEnglish(const std::wstring& text, bool isBitMode) {
         CodeHelper helper;
 
         if (isBitMode) {
 
         }
         else {
-            std::pair<std::wstring, std::unordered_map<std::wstring, wchar_t>> pair = helper.encodeString(text);
+            std::pair<std::string, std::unordered_map<std::wstring, wchar_t>> pair = helper.encodeString(text);
             std::wstring result = pair.first;
             std::unordered_map<std::wstring, wchar_t> mapCodes = pair.second;
 
@@ -177,11 +166,91 @@ private:
     }
 
     static int onOptionDecodeFromStringChosen(bool isEnglish, bool isBitMode) {
+        if (isEnglish) {
 
+        }
+        else {
+            std::wcout << "Enter text to decode:\n";
+            std::wstring text;
+            std::getline(std::wcin, text);
+            if (std::wcin.fail()) {
+                return onErrorInvalidEnteredTextToEncode();
+            }
+            if (text.size() == 0) {
+                return onErrorEmptyText();
+            }
+
+            std::cout << "Enter file path of key codes:\n";
+            std::wstring filePath;
+            std::wcin >> filePath;
+
+            std::wifstream in;
+            in.open(convertWstringToString(filePath));
+            if (!in.is_open()) {
+                return onErrorUnableToOpenFileToRead();
+            }
+            std::pair<std::unordered_map<std::wstring, wchar_t>, bool> pair = parseMapCodesFromFile(in);
+            if (!pair.second) {
+                return onErrorInvalidEncodingCodesFile();
+            }
+            return onDecodeNonEnglish(text, pair.first, isBitMode);;
+        }
+        return 0;
+    }
+
+    static int onDecodeNonEnglish(const std::wstring& text, std::unordered_map<std::wstring, wchar_t> mapCodes, bool& isBitMode) {
+        CodeHelper helper;
+
+        if (isBitMode) {
+
+        }
+        else {
+            std::wstring result = helper.decodeString(text, mapCodes);
+
+            bool isSuccessful = saveDecodingResults(result);
+            if (!isSuccessful) {
+                return onErrorUnableToSaveResults();
+            }
+            std::wcout << "\nDone!\n";
+            std::wcout << "Decoded text:\n";
+            std::wcout << result << L'\n';
+            std::wcout << "Also decoded text was saved in file decoding_results.txt,\n";
+            return 0;
+        }
+    }
+
+    static int onDecodeEnglish(const std::string text, std::unordered_map<std::string, char> mapCodes, bool& isBitMode) {
+        CodeHelper helper;
+        if (isBitMode) {
+
+        }
+        else {
+            std::string result = helper.decodeString(text, mapCodes);
+
+            bool isSuccessful = saveDecodingResults(result);
+            if (!isSuccessful) {
+                return onErrorUnableToSaveResults();
+            }
+            std::wcout << "\nDone!\n";
+            std::wcout << "Decoded text:\n";
+            std::cout << result << '\n';
+            std::wcout << "Also decoded text was saved in file decoding_results.txt,\n";
+        }
+        return 0;
     }
 
     static int onOptionDecodeFromFileChosen(bool isEnglish, bool isBitMode) {
 
+    }
+
+    static std::wstring readFile(std::wifstream& in) {
+        std::wstring fileLine;
+        std::wstring text;
+        while (std::getline(in, fileLine)) {
+            text += fileLine;
+        }
+        in.close();
+        return text;
     }
 
     static int onErrorInvalidOption() {
@@ -209,6 +278,11 @@ private:
         return 1;
     }
 
+    static int onErrorInvalidEncodingCodesFile() {
+        std::wcout << "Error: file with encoding codes is invalid.\n";
+        return 1;
+    }
+
     static bool saveEncodingResults(const std::wstring& encodedText, const std::wstring& encodingCodes) {
         std::wofstream outEncodedText;
         outEncodedText.open("encoding_results.txt");
@@ -230,6 +304,51 @@ private:
         return true;
     }
 
+    static bool saveEncodingResults(const std::string& encodedText, const std::string& encodingCodes) {
+        std::ofstream outEncodedText;
+        outEncodedText.open("encoding_results.txt");
+        if (!outEncodedText.is_open()) {
+            return false;
+        }
+
+        outEncodedText << encodedText;
+        outEncodedText.close();
+
+        std::ofstream outMapCodes;
+        outMapCodes.open("encoding_codes.txt");
+        if (!outMapCodes.is_open()) {
+            return false;
+        }
+
+        outMapCodes << encodingCodes;
+        outMapCodes.close();
+        return true;
+    }
+
+    static bool saveDecodingResults(const std::wstring& decodedText) {
+        std::wofstream out;
+        out.open("decoding_results.txt");
+        if (!out.is_open()) {
+            return false;
+        }
+
+        out << decodedText;
+        out.close();
+        return true;
+    }
+
+    static bool saveDecodingResults(const std::string& decodedText) {
+        std::ofstream out;
+        out.open("decoding_results.txt");
+        if (!out.is_open()) {
+            return false;
+        }
+
+        out << decodedText;
+        out.close();
+        return true;
+    }
+
     static std::wstring convertMapCodesToString(const std::unordered_map<std::wstring, wchar_t>& mapCodes) {
         std::wstring result;
         for (auto it = mapCodes.begin(); it != mapCodes.end(); it++) {
@@ -239,6 +358,25 @@ private:
             result += L"\n";
         }
         return result;
+    }
+
+    static std::pair<std::unordered_map<std::wstring, wchar_t>, bool> parseMapCodesFromFile(std::wifstream& in) {
+        std::unordered_map<std::wstring, wchar_t> mapCodes;
+
+        std::wstring fileLine;
+        std::wstring code;
+        wchar_t character;
+        wchar_t dash;
+        while (std::getline(in, fileLine)) {
+            std::wistringstream stream(fileLine);
+            stream >> character >> dash >> code;
+            if (!stream) {
+                return std::make_pair(mapCodes, false);
+            }
+            mapCodes[code] = character;
+        }
+        in.close();
+        return std::make_pair(mapCodes, true);
     }
 
     static std::string convertWstringToString(const std::wstring& wstr)  {
