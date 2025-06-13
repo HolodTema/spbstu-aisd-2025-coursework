@@ -1,36 +1,33 @@
 #include <iostream>
 
-#include "AlphabetHelper.h"
-#include <bits/stdc++.h>
+
+#include "ConsoleHelper.h"
 
 int main() {
-    // AlphabetHelper alphabetHelper;
-    //
-    // std::string str = "Hello world!";
-    // std::map<char, int> map = alphabetHelper.createFrequencyMap(str);
-    // for (std::map<char, int>::const_iterator it = map.cbegin(); it != map.cend(); ++it) {
-    //     std::cout << it->first << " " << it->second << '\n';
-    // }
 
-    // AlphabetHelper helper;
-    // std::map<char, int> map = helper.createFrequencyMap(std::cin);
-    // for (std::map<char, int>::const_iterator it = map.cbegin(); it != map.cend(); ++it) {
-    //     std::cout << it->first << " " << it->second << '\n';
-    // }
-
-    // std::wifstream wfis("../text.txt");
-    // if (!wfis.is_open()) {
-    //     std::cerr << "Error: unable to open file.\n";
-    //     return 1;
-    // }
+    // CodeHelper helper;
+    // std::wstring str = L"Hello world!";
+    // std::pair<std::vector<CodeHelper::CharInfo>, int> pair = helper.createFrequencyVector(str);
+    // std::vector<CodeHelper::CharInfo> vec = pair.first;
+    // int frequencyAmount = pair.second;
     //
-    // AlphabetHelper helper;
-    // std::map<wchar_t, int> map = helper.createFrequencyMap(wfis);
-    // wfis.close();
-    // for (std::map<wchar_t, int>::const_iterator it = map.cbegin(); it != map.cend(); ++it) {
-    //     std::wcout << it->first << " " << it->second << '\n';
+    // for (const CodeHelper::CharInfo& charInfo : vec) {
+    //     std::wcout << charInfo.getChar() << L' ' << charInfo.getFrequency() << L'\n';
     // }
-    // return 0;
-    std::cout << "привет\n";
-    std::wcout << L"привет\n";
+    // std::wcout << L'\n' << frequencyAmount << L'\n';
+
+    // CodeHelper helper;
+    // std::wstring str = L"Hello world!";
+    // std::pair<std::wstring, std::map<std::wstring, wchar_t>> pair = helper.encodeString(str);
+    // std::wstring result = pair.first;
+    // std::map<std::wstring, wchar_t> mapCodes = pair.second;
+    // std::wcout << result << '\n';
+    //
+    // std::wstring strDecoded = helper.decodeString(result, mapCodes);
+    // std::wcout << strDecoded << L'\n';
+
+    ConsoleHelper::launch();
+
+
+    return 0;
 }

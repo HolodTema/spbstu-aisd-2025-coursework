@@ -6,4 +6,5 @@ set(CMAKE_CXX_STANDARD 20)
 add_executable(coursework main.cpp
         AlphabetHelper.h
         CodeHelper.h
-        StreamGuard.h)
+        StreamGuard.h
+        ConsoleHelper.h)
