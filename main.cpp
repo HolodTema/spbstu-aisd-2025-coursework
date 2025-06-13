@@ -26,7 +26,7 @@ int main() {
     // std::wstring strDecoded = helper.decodeString(result, mapCodes);
     // std::wcout << strDecoded << L'\n';
 
+    setlocale(LC_ALL, "");
     ConsoleHelper::launch();
-
     return 0;
 }

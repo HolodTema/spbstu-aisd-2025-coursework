@@ -1,7 +1,9 @@
 #ifndef CONSOLE_HELPER_H
 #define CONSOLE_HELPER_H
 
+#include <codecvt>
 #include <fstream>
+#include <locale>
 #include <thread>
 #include <bits/chrono.h>
 
@@ -11,10 +13,10 @@ class ConsoleHelper {
 public:
 
     static int launch() {
-        std::cout << "Hello, this program allows you to encode or decode text using Shannon-Fano coding.\n\n";
+        std::wcout << "Hello, this program allows you to encode or decode text using Shannon-Fano coding.\n\n";
 
-        std::cout << "Enter language of text to encode/decode:\n";
-        std::cout << "1. English (ASCII characters)\n2. other languages (non-ASCII characters)\n";
+        std::wcout << "Enter language of text to encode/decode:\n";
+        std::wcout << "1. English (ASCII characters)\n2. other languages (non-ASCII characters)\n";
         int optionLang = 0;
         std::wcin >> optionLang;
         if (!std::wcin) {
@@ -25,17 +27,29 @@ public:
         }
         bool isEnglish = optionLang == 1;
 
-        std::cout << "Enter option:\n1. encode text\n2. decode text\n";
+        std::wcout << "Enter option:\n";
+        std::wcout << "1. encode text in simple mode (every digit 0 or 1 will be full char in text)\n";
+        std::wcout << "2. encode text in bit mode (every digit 0 or 1 is inside integer bits)\n";
+        std::wcout << "3. decode text in simple mode\n";
+        std::wcout << "4. decode text in bit mode\n";
         int optionEncodeDecode = 0;
         std::wcin >> optionEncodeDecode;
         if (!std::wcin) {
             return onErrorInvalidOption();
         }
+
+        bool isBitMode = optionEncodeDecode == 2 || optionEncodeDecode == 4;
         if (optionEncodeDecode == 1) {
-            onOptionEncodeChosen(isEnglish);
+            onOptionEncodeChosen(isEnglish, isBitMode);
         }
         else if (optionEncodeDecode == 2) {
-            onOptionDecodeChosen(isEnglish);
+
+        }
+        else if (optionEncodeDecode == 3) {
+            onOptionDecodeChosen(isEnglish, isBitMode);
+        }
+        else if (optionEncodeDecode == 4) {
+
         }
         else {
             return onErrorInvalidOption();
@@ -44,18 +58,18 @@ public:
     }
 
 private:
-    static int onOptionEncodeChosen(bool isEnglish) {
-        std::cout << "\nEnter option:\n1. enter string to encode\n2. choose text file to encode\n";
+    static int onOptionEncodeChosen(bool isEnglish, bool isBitMode) {
+        std::wcout << "\nEnter option:\n1. enter string to encode\n2. choose text file to encode\n";
         int optionFromStringFile = 0;
         std::wcin >> optionFromStringFile;
         if (!std::wcin) {
             return onErrorInvalidOption();
         }
         if (optionFromStringFile == 1) {
-            return onOptionEncodeFromStringChosen(isEnglish);
+            return onOptionEncodeFromStringChosen(isEnglish, isBitMode);
         }
         else if (optionFromStringFile == 2) {
-            return onOptionEncodeFromFileChosen(isEnglish);
+            return onOptionEncodeFromFileChosen(isEnglish, isBitMode);
         }
         else {
             return onErrorInvalidOption();
@@ -63,25 +77,15 @@ private:
         return 0;
     }
 
-    static int onOptionEncodeFromStringChosen(bool isEnglish) {
+    static int onOptionEncodeFromStringChosen(bool isEnglish,  bool isBitMode) {
         if (isEnglish) {
-            // std::cout << "Enter text to encode:\n";
-            // std::string text;
-            // std::cin >> text;
-            // if (!std::cin) {
-            //     return onErrorInvalidEnteredTextToEncode();
-            // }
-            // if (text.size() == 0) {
-            //     return onErrorEmptyText();
-            // }
-            //
-            // CodeHelper helper;
+
 
         }
         else {
-            std::cout << "Enter text to encode:\n";
+            std::wcout << "Enter text to encode:\n";
             std::wstring text;
-            std::wcin.clear();
+            std::getline(std::wcin, text);
             std::getline(std::wcin, text);
             if (std::wcin.fail()) {
                 return onErrorInvalidEnteredTextToEncode();
@@ -90,22 +94,22 @@ private:
                 return onErrorEmptyText();
             }
 
-            return onEncodeNonEnglish(text);
+            return onEncodeNonEnglish(text, isBitMode);
         }
         return 0;
     }
 
-    static int onOptionEncodeFromFileChosen(bool isEnglish) {
+    static int onOptionEncodeFromFileChosen(bool isEnglish,  bool isBitMode) {
         if (isEnglish) {
 
         }
         else {
-            std::cout << "Enter relative file path:\n";
-            std::string filePath;
-            std::cin >> filePath;
+            std::wcout << "Enter relative file path:\n";
+            std::wstring filePath;
+            std::wcin >> filePath;
 
             std::wifstream in;
-            in.open(filePath);
+            in.open(convertWstringToString(filePath));
             if (!in.is_open()) {
                 return onErrorUnableToOpenFileToRead();
             }
@@ -121,59 +125,87 @@ private:
                 return onErrorEmptyText();
             }
 
-            return onEncodeNonEnglish(text);
+            return onEncodeNonEnglish(text, isBitMode);
         }
         return 0;
     }
 
-    static int onEncodeNonEnglish(std::wstring text) {
+    static int onEncodeNonEnglish(std::wstring text, bool isBitMode) {
         CodeHelper helper;
-        std::pair<std::wstring, std::map<std::wstring, wchar_t>> pair = helper.encodeString(text);
-        std::wstring result = pair.first;
-        std::map<std::wstring, wchar_t> mapCodes = pair.second;
 
-        std::wstring encodingCodes = convertMapCodesToString(mapCodes);
-        bool isSuccessful = saveEncodingResults(result, encodingCodes);
-        if (!isSuccessful) {
-            return onErrorUnableToSaveResults();
+        if (isBitMode) {
+
         }
-        std::cout << "\nDone!\n";
-        std::cout << "Encoded text:\n";
-        std::wcout << result << L'\n';
-        std::cout << "Codes of encoding:\n";
-        std::wcout << encodingCodes;
-        std::cout << "\nAlso these results are saved in files:\n";
-        std::cout << "encoding_results.txt\nencoding.codes.txt\n";
+        else {
+            std::pair<std::wstring, std::map<std::wstring, wchar_t>> pair = helper.encodeString(text);
+            std::wstring result = pair.first;
+            std::map<std::wstring, wchar_t> mapCodes = pair.second;
+
+            std::wstring encodingCodes = convertMapCodesToString(mapCodes);
+            bool isSuccessful = saveEncodingResults(result, encodingCodes);
+            if (!isSuccessful) {
+                return onErrorUnableToSaveResults();
+            }
+            std::wcout << "\nDone!\n";
+            std::wcout << "Encoded text:\n";
+            std::wcout << result << L'\n';
+            std::wcout << "Codes of encoding:\n";
+            std::wcout << encodingCodes;
+            std::wcout << "\nAlso these results are saved in files:\n";
+            std::wcout << "encoding_results.txt\nencoding.codes.txt\n";
+        }
         return 0;
     }
 
-    static int onOptionDecodeChosen(bool isEnglish) {
-
+    static int onOptionDecodeChosen(bool isEnglish,  bool isBitMode) {
+        std::wcout << "\nEnter option:\n1. enter string to decode\n2. choose text file to decode\n";
+        int optionFromStringFile = 0;
+        std::wcin >> optionFromStringFile;
+        if (!std::wcin) {
+            return onErrorInvalidOption();
+        }
+        if (optionFromStringFile == 1) {
+            return onOptionDecodeFromStringChosen(isEnglish, isBitMode);
+        }
+        else if (optionFromStringFile == 2) {
+            return onOptionDecodeFromFileChosen(isEnglish, isBitMode);
+        }
+        else {
+            return onErrorInvalidOption();
+        }
         return 0;
+    }
+
+    static int onOptionDecodeFromStringChosen(bool isEnglish, bool isBitMode) {
+
+    }
+
+    static int onOptionDecodeFromFileChosen(bool isEnglish, bool isBitMode) {
+
     }
 
     static int onErrorInvalidOption() {
-        std::cout << "Error: invalid option.\n";
+        std::wcout << "Error: invalid option.\n";
         return 1;
     }
 
     static int onErrorEmptyText() {
-        std::cout << "Error: there is no text to handle.\n";
+        std::wcout << "Error: there is no text to handle.\n";
         return 1;
     }
 
     static int onErrorInvalidEnteredTextToEncode() {
-        std::cout << "Error: invalid entered text to encode. Try using non-English language option to encode this text.\n";
+        std::wcout << "Error: invalid entered text to encode. Try using non-English language option to encode this text.\n";
         return 1;
     }
 
     static int onErrorUnableToSaveResults() {
-        std::cout << "Error: unable to save results of operation.\n";
+        std::wcout << "Error: unable to save results of operation.\n";
         return 1;
     }
 
     static int onErrorUnableToOpenFileToRead() {
-        std::cout << "Error: unable to open file to read. Ensure that file exists.\n";
+        std::wcout << "Error: unable to open file to read. Ensure that file exists.\n";
         return 1;
     }
 
@@ -207,6 +239,12 @@ private:
             result += L"\n";
         }
         return result;
+    }
+
+    static std::string convertWstringToString(const std::wstring& wstr)  {
+        using convert_type = std::codecvt_utf8<wchar_t>;
+        std::wstring_convert<convert_type, wchar_t> converter;
+        return converter.to_bytes( wstr );
     }
 
 };

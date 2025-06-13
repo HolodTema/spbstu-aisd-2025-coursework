@@ -1,5 +1,0 @@
-русский язык
-Hello world!
-The sky is blue.
-This is the third line in this text document.
-Привет, это строка на русском.ёё

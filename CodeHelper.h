@@ -10,6 +10,46 @@
 class CodeHelper {
 public:
 
+    std::pair<std::wstring, std::map<std::wstring, wchar_t>> encodeString(const std::wstring& str) {
+        std::pair<std::vector<CharInfo>, int> pair = createFrequencyVector(str);
+        std::vector<CharInfo> frequencyVector = pair.first;
+        int frequencyAmount = pair.second;
+
+        generateCode(frequencyVector.begin(), frequencyVector.end(), frequencyAmount);
+
+        std::map<wchar_t, std::wstring> codesMap;
+        for (CharInfo charInfo : frequencyVector) {
+            codesMap[charInfo.getChar()] = charInfo.getCode();
+        }
+
+        std::wstring result;
+        for (wchar_t ch : str) {
+            result += codesMap[ch];
+        }
+
+        std::map<std::wstring, wchar_t> mapCodesInversed = inverseMap(codesMap);
+
+        return std::make_pair(result, mapCodesInversed);
+    }
+
+    std::wstring decodeString(const std::wstring& encodedStr, const std::map<std::wstring, wchar_t>& mapCodes) {
+        std::wstring result;
+        std::wstring code;
+
+        int i = 0;
+        while (i < encodedStr.size()) {
+            while (!mapCodes.contains(code)) {
+                code += encodedStr[i];
+                ++i;
+            }
+            result += mapCodes.at(code);
+            code.clear();
+        }
+        return result;
+    }
+
+private:
+
     class CharInfo {
     public:
         CharInfo(const wchar_t& ch, const int& frequency):
@@ -43,7 +83,6 @@ public:
         std::wstring code_;
     };
 
-    //returns frequencyVector with amount of all frequencies
     std::pair<std::vector<CharInfo>, int> createFrequencyVector(const std::wstring& str) {
         std::map<wchar_t, int> frequencyMap;
         for (wchar_t ch : str) {
@@ -81,44 +120,6 @@ public:
         }
         generateCode(beginIter, splitIter, higherSum);
         generateCode(splitIter, endIter, frequencyAmount-higherSum);
-    }
-
-    std::pair<std::wstring, std::map<std::wstring, wchar_t>> encodeString(const std::wstring& str) {
-        std::pair<std::vector<CharInfo>, int> pair = createFrequencyVector(str);
-        std::vector<CharInfo> frequencyVector = pair.first;
-        int frequencyAmount = pair.second;
-
-        generateCode(frequencyVector.begin(), frequencyVector.end(), frequencyAmount);
-
-        std::map<wchar_t, std::wstring> codesMap;
-        for (CharInfo charInfo : frequencyVector) {
-            codesMap[charInfo.getChar()] = charInfo.getCode();
-        }
-
-        std::wstring result;
-        for (wchar_t ch : str) {
-            result += codesMap[ch];
-        }
-
-        std::map<std::wstring, wchar_t> mapCodesInversed = inverseMap(codesMap);
-
-        return std::make_pair(result, mapCodesInversed);
-    }
-
-    std::wstring decodeString(const std::wstring& encodedStr, const std::map<std::wstring, wchar_t>& mapCodes) {
-        std::wstring result;
-        std::wstring code;
-
-        int i = 0;
-        while (i < encodedStr.size()) {
-            while (!mapCodes.contains(code)) {
-                code += encodedStr[i];
-                ++i;
-            }
-            result += mapCodes.at(code);
-            code.clear();
-        }
-        return result;
     }
 
     template<typename K, typename V>
