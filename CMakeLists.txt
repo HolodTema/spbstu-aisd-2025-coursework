@@ -7,4 +7,8 @@ add_executable(coursework main.cpp
         AlphabetHelper.h
         CodeHelper.h
         StreamGuard.h
-        ConsoleHelper.h)
+        ConsoleHelper.h
+        SmartBoolArray.cpp
+        SmartBoolArray.h
+        smartBoolArrayExceptions.h
+)
