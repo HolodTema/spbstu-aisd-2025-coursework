@@ -28,6 +28,5 @@ int main() {
 
     ConsoleHelper::launch();
 
-
     return 0;
 }
