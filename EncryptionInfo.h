@@ -1,0 +1,6 @@
+#ifndef ENCRYPTION_INFO_H
+#define ENCRYPTION_INFO_H
+
+
+
+#endif //ENCRYPTION_INFO_H

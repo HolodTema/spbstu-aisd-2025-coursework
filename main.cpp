@@ -44,12 +44,12 @@ int main() {
 
 
     CodeHelper helper;
-    std::string strToEncode = "Hello world!";
-    std::pair<std::string, MapCodesEnglish> pair = helper.encodeStringBits(strToEncode);
+    std::string strToEncode = "aaaaaaaaaaaaaaa";
+    std::pair<std::string, EncryptionInfo<MapCodesEnglish>> pair = helper.encodeStringBits(strToEncode);
     std::string result = pair.first;
     std::cout << result << '\n';
 
-    for (auto pairCodeChar : pair.second) {
+    for (auto pairCodeChar : pair.second.mapCodes) {
         std::cout << pairCodeChar.second << " - " << pairCodeChar.first << '\n';
     }
     std::cout << '\n';

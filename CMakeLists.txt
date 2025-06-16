@@ -11,4 +11,5 @@ add_executable(coursework main.cpp
         SmartBoolArray.cpp
         SmartBoolArray.h
         smartBoolArrayExceptions.h
+        EncryptionInfo.h
 )

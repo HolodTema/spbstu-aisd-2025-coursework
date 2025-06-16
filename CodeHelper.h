@@ -7,10 +7,18 @@
 #include <unordered_map>
 #include <vector>
 #include <cmath>
+#include <ranges>
+
 #include "SmartBoolArray.h"
 
 using MapCodesEnglish = std::unordered_map<std::string, unsigned char>;
 using MapCodesNonEnglish = std::unordered_map<std::string, wchar_t>;
+
+template <typename MapType>
+struct EncryptionInfo {
+    unsigned int fillZeroes = 0;
+    MapType mapCodes;
+};
 
 class CodeHelper {
 public:
@@ -61,7 +69,7 @@ public:
     }
 
     //english encode bits-mode
-    std::pair<std::string, MapCodesEnglish> encodeStringBits(const std::string& str) {
+    std::pair<std::string, EncryptionInfo<MapCodesEnglish>> encodeStringBits(const std::string& str) {
         VectorFrequencyEnglish vectorFrequency = createFrequencyVector(str);
 
         generateCode(vectorFrequency.begin(), vectorFrequency.end(), str.size());
@@ -74,6 +82,8 @@ public:
         std::string result;
         std::string singleChar;
         std::string code;
+        unsigned int fillZeroes = 0;
+
         for (unsigned char messageChar : str) {
             code = codesMap[messageChar];
             for (char codeChar : code) {
@@ -86,13 +96,17 @@ public:
                     singleChar += codeChar;
                 }
             }
-            if (singleChar.size() <= 8) {
-
+        }
+        if (singleChar.size() <= 8) {
+            while (singleChar.size() < 8) {
+                singleChar += '0';
+                ++fillZeroes;
             }
+            result += convertBinCodeToChar(singleChar);
         }
 
         MapCodesEnglish mapCodesInverse = inverseMap(codesMap);
-        return std::make_pair(result, mapCodesInverse);
+        return std::make_pair(result, EncryptionInfo<MapCodesEnglish>(fillZeroes, mapCodesInverse));
     }
 
     //non-english encode bits-mode
@@ -164,7 +178,7 @@ public:
     }
 
     //english decode bits-mode
-    std::string decodeStringBits(const std::string& encodedStr, const MapCodesEnglish& mapCodes) {
+    std::string decodeStringBits(const std::string& encodedStr, const EncryptionInfo<MapCodesEnglish>& encryptionInfo) {
         std::string encodedStrBits;
 
         for (int i = 0; i < encodedStr.size(); ++i) {
@@ -172,7 +186,22 @@ public:
             encodedStrBits += convertCharToBinCode(ch);
         }
 
-        return decodeString(encodedStrBits, mapCodes);
+        std::string result;
+        std::string code;
+
+        int i = 0;
+        while (i < encodedStrBits.size()-encryptionInfo.fillZeroes) {
+            while (!encryptionInfo.mapCodes.contains(code)) {
+                code += encodedStrBits[i];
+                ++i;
+                if (i > encodedStrBits.size() - encryptionInfo.fillZeroes) {
+                    return result;
+                }
+            }
+            result += encryptionInfo.mapCodes.at(code);
+            code.clear();
+        }
+        return result;
     }
 
     //non-english decode bits-mode
