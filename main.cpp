@@ -61,5 +61,27 @@ int main() {
     //
     // std::cout << "end.\n";
 
+
+
+
+
+
+
+
+    CodeHelper helper;
+    std::wstring strToEncode = L"Добрый день, это сообщение написано на русском...";
+    std::pair<std::string, EncodingInfo<MapCodesNonEnglish>> pair = helper.encodeStringBits(strToEncode);
+    std::string result = pair.first;
+    std::wcout << L"---------\n";
+    std::wcout << std::wstring(result.begin(), result.end()) << '\n';
+
+    for (auto pairCodeChar : pair.second.mapCodes) {
+        std::wcout << pairCodeChar.second << L" - " << std::wstring(pairCodeChar.first.begin(), pairCodeChar.first.end()) << L'\n';
+    }
+    std::wcout << '\n';
+    std::wcout << L"Encoded. It is time to decode!\n";
+    std::wstring strDecoded = helper.decodeStringBits(result, pair.second);
+    std::wcout << strDecoded << '\n';
+
     return 0;
 }

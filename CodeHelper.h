@@ -126,7 +126,7 @@ public:
     }
 
     //non-english encode bits-mode
-    std::pair<std::string, MapCodesNonEnglish> encodeStringBits(const std::wstring& str) {
+    std::pair<std::string, EncodingInfo<MapCodesNonEnglish>> encodeStringBits(const std::wstring& str) {
         VectorFrequencyNonEnglish vectorFrequency = createFrequencyVector(str);
 
         if (vectorFrequency.size() == 1) {
@@ -144,21 +144,31 @@ public:
         std::string result;
         std::string singleChar;
         std::string code;
-        for (unsigned char messageChar : str) {
+        unsigned int fillZeroes = 0;
+
+        for (wchar_t messageChar : str) {
             code = codesMap[messageChar];
-            for (unsigned char codeChar : code) {
+            for (char codeChar : code) {
                 if (singleChar.size() < 8) {
                     singleChar += codeChar;
                 }
                 else {
                     result += convertBinCodeToChar(singleChar);
                     singleChar.clear();
+                    singleChar += codeChar;
                 }
             }
         }
+        if (singleChar.size() <= 8) {
+            while (singleChar.size() < 8) {
+                singleChar += '0';
+                ++fillZeroes;
+            }
+            result += convertBinCodeToChar(singleChar);
+        }
 
         MapCodesNonEnglish mapCodesInverse = inverseMap(codesMap);
-        return std::make_pair(result, mapCodesInverse);
+        return std::make_pair(result, EncodingInfo(fillZeroes, mapCodesInverse));
     }
 
 
@@ -199,7 +209,7 @@ public:
     }
 
     //english decode bits-mode
-    std::string decodeStringBits(const std::string& encodedStr, const EncodingInfo<MapCodesEnglish>& encryptionInfo) {
+    std::string decodeStringBits(const std::string& encodedStr, const EncodingInfo<MapCodesEnglish>& encodingInfo) {
         std::string encodedStrBits;
 
         for (int i = 0; i < encodedStr.size(); ++i) {
@@ -211,30 +221,45 @@ public:
         std::string code;
 
         int i = 0;
-        while (i < encodedStrBits.size()-encryptionInfo.fillZeroes) {
-            while (!encryptionInfo.mapCodes.contains(code)) {
+        while (i < encodedStrBits.size()-encodingInfo.fillZeroes) {
+            while (!encodingInfo.mapCodes.contains(code)) {
                 code += encodedStrBits[i];
                 ++i;
-                if (i > encodedStrBits.size() - encryptionInfo.fillZeroes) {
+                if (i > encodedStrBits.size() - encodingInfo.fillZeroes) {
                     return result;
                 }
             }
-            result += encryptionInfo.mapCodes.at(code);
+            result += encodingInfo.mapCodes.at(code);
             code.clear();
         }
         return result;
     }
 
     //non-english decode bits-mode
-    std::wstring decodeStringBits(const std::string& encodedStr, const MapCodesNonEnglish& mapCodes) {
-        std::string result;
+    std::wstring decodeStringBits(const std::string& encodedStr, const EncodingInfo<MapCodesNonEnglish>& encodingInfo) {
         std::string encodedStrBits;
 
-        for (const char& encodedChar: encodedStr) {
-            encodedStrBits += convertCharToBinCode(encodedChar);
+        for (int i = 0; i < encodedStr.size(); ++i) {
+            unsigned char ch = encodedStr[i];
+            encodedStrBits += convertCharToBinCode(ch);
         }
 
-        return decodeString(encodedStrBits, mapCodes);
+        std::wstring result;
+        std::string code;
+
+        int i = 0;
+        while (i < encodedStrBits.size()-encodingInfo.fillZeroes) {
+            while (!encodingInfo.mapCodes.contains(code)) {
+                code += encodedStrBits[i];
+                ++i;
+                if (i > encodedStrBits.size() - encodingInfo.fillZeroes) {
+                    return result;
+                }
+            }
+            result += encodingInfo.mapCodes.at(code);
+            code.clear();
+        }
+        return result;
     }
 
 
