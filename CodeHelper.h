@@ -6,21 +6,23 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <cmath>
 #include "SmartBoolArray.h"
 
+using MapCodesEnglish = std::unordered_map<std::string, char>;
+using MapCodesNonEnglish = std::unordered_map<std::string, wchar_t>;
 
 class CodeHelper {
 public:
 
-    std::pair<std::string, std::unordered_map<std::string, wchar_t>> encodeString(const std::wstring& str) {
-        std::pair<std::vector<CharInfo<wchar_t>>, int> pair = createFrequencyVector(str);
-        std::vector<CharInfo<wchar_t>> frequencyVector = pair.first;
-        int frequencyAmount = pair.second;
+    //non-english encode
+    std::pair<std::string, MapCodesNonEnglish> encodeString(const std::wstring& str) {
+        VectorFrequencyNonEnglish vectorFrequency = createFrequencyVector(str);
 
-        generateCode(frequencyVector.begin(), frequencyVector.end(), frequencyAmount);
+        generateCode(vectorFrequency.begin(), vectorFrequency.end(), str.size());
 
         std::unordered_map<wchar_t, std::string> codesMap;
-        for (CharInfo<wchar_t> charInfo : frequencyVector) {
+        for (CharInfo<wchar_t> charInfo : vectorFrequency) {
             codesMap[charInfo.getChar()] = charInfo.getCode();
         }
 
@@ -29,59 +31,101 @@ public:
             result += codesMap[ch];
         }
 
-        std::unordered_map<std::string, wchar_t> mapCodesInversed = inverseMap(codesMap);
+        MapCodesNonEnglish mapCodesInverse = inverseMap(codesMap);
 
-        return std::make_pair(result, mapCodesInversed);
+        return std::make_pair(result, mapCodesInverse);
     }
 
-    //for english
-    std::pair<std::string, std::unordered_map<std::string, char>> encodeStringBits(const std::string& str) {
-        std::pair<std::vector<CharInfo<char>>, int> pair = createFrequencyVector(str);
-        std::vector<CharInfo<char>> frequencyVector = pair.first;
-        int frequencyAmount = pair.second;
+    //english encode
+    std::pair<std::string, MapCodesEnglish> encodeString(const std::string& str) {
+        VectorFrequencyEnglish vectorFrequency = createFrequencyVector(str);
 
-        generateCode(frequencyVector.begin(), frequencyVector.end(), frequencyAmount);
+        generateCode(vectorFrequency.begin(), vectorFrequency.end(), str.size());
 
         std::unordered_map<char, std::string> codesMap;
-        for (const CharInfo<char>& charInfo : frequencyVector) {
+        for (const CharInfo<char>& charInfo : vectorFrequency) {
+            codesMap[charInfo.getChar()] = charInfo.getCode();
+        }
+
+        std::string result;
+        for (wchar_t ch : str) {
+            result += codesMap[ch];
+        }
+
+        MapCodesEnglish mapCodesInverse = inverseMap(codesMap);
+
+        return std::make_pair(result, mapCodesInverse);
+    }
+
+    //english encode bits-mode
+    std::pair<std::string, MapCodesEnglish> encodeStringBits(const std::string& str) {
+        VectorFrequencyEnglish vectorFrequency = createFrequencyVector(str);
+
+        generateCode(vectorFrequency.begin(), vectorFrequency.end(), str.size());
+
+        std::unordered_map<char, std::string> codesMap;
+        for (const CharInfo<char>& charInfo : vectorFrequency) {
             codesMap[charInfo.getChar()] = charInfo.getCode();
         }
 
         std::string result;
         std::string singleChar;
-        for (char ch : str) {
-            while (singleChar.size() < 8) {
-                singleChar += codesMap[ch];
+        std::string code;
+        for (char messageChar : str) {
+            code = codesMap[messageChar];
+            for (char codeChar : code) {
+                if (singleChar.size() < 8) {
+                    singleChar += codeChar;
+                }
+                else {
+                    result += convertBinCodeToChar(singleChar);
+                    singleChar.clear();
+                }
             }
-            result += codesMap[ch];
         }
 
-        std::unordered_map<std::string, char> mapCodesInversed = inverseMap(codesMap);
+        MapCodesEnglish mapCodesInverse = inverseMap(codesMap);
+        return std::make_pair(result, mapCodesInverse);
+    }
 
-        return std::make_pair(result, mapCodesInversed);
+    //non-english encode bits-mode
+    std::pair<std::string, MapCodesNonEnglish> encodeStringBits(const std::wstring& str) {
+        VectorFrequencyNonEnglish vectorFrequency = createFrequencyVector(str);
+
+        generateCode(vectorFrequency.begin(), vectorFrequency.end(), str.size());
+
+        std::unordered_map<wchar_t, std::string> codesMap;
+        for (const CharInfo<wchar_t>& charInfo : vectorFrequency) {
+            codesMap[charInfo.getChar()] = charInfo.getCode();
+        }
+
+        std::string result;
+        std::string singleChar;
+        std::string code;
+        for (char messageChar : str) {
+            code = codesMap[messageChar];
+            for (char codeChar : code) {
+                if (singleChar.size() < 8) {
+                    singleChar += codeChar;
+                }
+                else {
+                    result += convertBinCodeToChar(singleChar);
+                    singleChar.clear();
+                }
+            }
+        }
+
+        MapCodesNonEnglish mapCodesInverse = inverseMap(codesMap);
+        return std::make_pair(result, mapCodesInverse);
     }
 
 
-    std::wstring decodeString(const std::wstring& encodedStr, const std::unordered_map<std::wstring, wchar_t>& mapCodes) {
-        std::wstring result;
-        std::wstring code;
 
-        int i = 0;
-        while (i < encodedStr.size()) {
-            while (!mapCodes.contains(code)) {
-                code += encodedStr[i];
-                ++i;
-            }
-            result += mapCodes.at(code);
-            code.clear();
-        }
-        return result;
-    }
 
     //non-english decode
-    std::wstring decodeStringBits(const std::string& encodedStr, const std::unordered_map<std::wstring, wchar_t>& mapCodes) {
+    std::wstring decodeString(const std::string& encodedStr, const MapCodesNonEnglish& mapCodes) {
         std::wstring result;
-        std::wstring code;
+        std::string code;
 
         int i = 0;
         while (i < encodedStr.size()) {
@@ -95,7 +139,8 @@ public:
         return result;
     }
 
-    std::string decodeString(const std::string& encodedStr, const std::unordered_map<std::string, char>& mapCodes) {
+    //english decode
+    std::string decodeString(const std::string& encodedStr, const MapCodesEnglish& mapCodes) {
         std::string result;
         std::string code;
 
@@ -111,8 +156,32 @@ public:
         return result;
     }
 
-private:
+    //english decode bits-mode
+    std::string decodeStringBits(const std::string& encodedStr, const MapCodesEnglish& mapCodes) {
+        std::string result;
+        std::string encodedStrBits;
 
+        for (const char& encodedChar: encodedStr) {
+            encodedStrBits += convertCharToBinCode(encodedChar);
+        }
+
+        return decodeString(encodedStrBits, mapCodes);
+    }
+
+    //non-english decode bits-mode
+    std::wstring decodeStringBits(const std::string& encodedStr, const MapCodesNonEnglish& mapCodes) {
+        std::string result;
+        std::string encodedStrBits;
+
+        for (const char& encodedChar: encodedStr) {
+            encodedStrBits += convertCharToBinCode(encodedChar);
+        }
+
+        return decodeString(encodedStrBits, mapCodes);
+    }
+
+
+private:
     template <typename T>
     class CharInfo {
     public:
@@ -147,36 +216,39 @@ private:
         std::string code_;
     };
 
-    std::pair<std::vector<CharInfo<wchar_t>>, int> createFrequencyVector(const std::wstring& str) {
+    using VectorFrequencyEnglish = std::vector<CharInfo<char>>;
+    using VectorFrequencyNonEnglish = std::vector<CharInfo<wchar_t>>;
+
+    VectorFrequencyNonEnglish createFrequencyVector(const std::wstring& str) {
         std::map<wchar_t, int> frequencyMap;
         for (wchar_t ch : str) {
             frequencyMap[ch] ++;
         }
 
-        std::vector<CharInfo<wchar_t>> result;
-        for (std::pair<wchar_t, int> pair : frequencyMap) {
+        VectorFrequencyNonEnglish result;
+        for (auto pair : frequencyMap) {
             result.emplace_back(pair.first, pair.second);
         }
         auto comparator = [](const CharInfo<wchar_t>& lhs, const CharInfo<wchar_t>& rhs) {return lhs.getFrequency() > rhs.getFrequency(); };
         std::sort(result.begin(), result.end(), comparator);
 
-        return std::make_pair(result, str.size());
+        return result;
     }
 
-    std::pair<std::vector<CharInfo<char>>, int> createFrequencyVector(const std::string& str) {
+    VectorFrequencyEnglish createFrequencyVector(const std::string& str) {
         std::map<char, int> frequencyMap;
         for (char ch : str) {
             frequencyMap[ch] ++;
         }
 
-        std::vector<CharInfo<char>> result;
+        VectorFrequencyEnglish result;
         for (std::pair<char, int> pair : frequencyMap) {
             result.emplace_back(pair.first, pair.second);
         }
         auto comparator = [](const CharInfo<char>& lhs, const CharInfo<char>& rhs) {return lhs.getFrequency() > rhs.getFrequency(); };
         std::sort(result.begin(), result.end(), comparator);
 
-        return std::make_pair(result, str.size());
+        return result;
     }
 
     void generateCode(std::vector<CharInfo<wchar_t>>::iterator beginIter, std::vector<CharInfo<wchar_t>>::iterator endIter, int frequencyAmount) {
@@ -231,6 +303,26 @@ private:
         for (typename std::unordered_map<K, V>::const_iterator it = map.cbegin(); it != map.cend(); ++it) {
             result[it->second] = it->first;
         }
+        return result;
+    }
+
+    char convertBinCodeToChar(const std::string& str) {
+        char result = 0;
+        char bit = 0;
+        for (int i = 0; i < str.size(); ++i) {
+            bit = str[str.size()-1-i] - '0';
+            result += bit*std::pow(2, i);
+        }
+        return result;
+    }
+
+    std::string convertCharToBinCode(char ch) {
+        std::string result;
+        while (ch > 1) {
+            result += (ch % 2);
+            ch /= 2;
+        }
+        result += ch;
         return result;
     }
 };
