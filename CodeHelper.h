@@ -15,7 +15,7 @@ using MapCodesEnglish = std::unordered_map<std::string, unsigned char>;
 using MapCodesNonEnglish = std::unordered_map<std::string, wchar_t>;
 
 template <typename MapType>
-struct EncryptionInfo {
+struct EncodingInfo {
     unsigned int fillZeroes = 0;
     MapType mapCodes;
 };
@@ -30,7 +30,13 @@ public:
         for (auto charInfo : vectorFrequency) {
             std::wcout << charInfo.getChar() << L" - " << charInfo.getFrequency() << L'\n';
         }
-        generateCode(vectorFrequency.begin(), vectorFrequency.end(), str.size());
+
+        if (vectorFrequency.size() == 1) {
+            vectorFrequency[0].addOneToCode();
+        }
+        else {
+            generateCode(vectorFrequency.begin(), vectorFrequency.end(), str.size());
+        }
 
         std::unordered_map<wchar_t, std::string> codesMap;
         for (CharInfo<wchar_t> charInfo : vectorFrequency) {
@@ -51,7 +57,12 @@ public:
     std::pair<std::string, MapCodesEnglish> encodeString(const std::string& str) {
         VectorFrequencyEnglish vectorFrequency = createFrequencyVector(str);
 
-        generateCode(vectorFrequency.begin(), vectorFrequency.end(), str.size());
+        if (vectorFrequency.size() == 1) {
+            vectorFrequency[0].addOneToCode();
+        }
+        else {
+            generateCode(vectorFrequency.begin(), vectorFrequency.end(), str.size());
+        }
 
         std::unordered_map<unsigned char, std::string> codesMap;
         for (const CharInfo<unsigned char>& charInfo : vectorFrequency) {
@@ -69,10 +80,15 @@ public:
     }
 
     //english encode bits-mode
-    std::pair<std::string, EncryptionInfo<MapCodesEnglish>> encodeStringBits(const std::string& str) {
+    std::pair<std::string, EncodingInfo<MapCodesEnglish>> encodeStringBits(const std::string& str) {
         VectorFrequencyEnglish vectorFrequency = createFrequencyVector(str);
 
-        generateCode(vectorFrequency.begin(), vectorFrequency.end(), str.size());
+        if (vectorFrequency.size() == 1) {
+            vectorFrequency[0].addOneToCode();
+        }
+        else {
+            generateCode(vectorFrequency.begin(), vectorFrequency.end(), str.size());
+        }
 
         std::unordered_map<unsigned char, std::string> codesMap;
         for (const CharInfo<unsigned char>& charInfo : vectorFrequency) {
@@ -106,14 +122,19 @@ public:
         }
 
         MapCodesEnglish mapCodesInverse = inverseMap(codesMap);
-        return std::make_pair(result, EncryptionInfo<MapCodesEnglish>(fillZeroes, mapCodesInverse));
+        return std::make_pair(result, EncodingInfo<MapCodesEnglish>(fillZeroes, mapCodesInverse));
     }
 
     //non-english encode bits-mode
     std::pair<std::string, MapCodesNonEnglish> encodeStringBits(const std::wstring& str) {
         VectorFrequencyNonEnglish vectorFrequency = createFrequencyVector(str);
 
-        generateCode(vectorFrequency.begin(), vectorFrequency.end(), str.size());
+        if (vectorFrequency.size() == 1) {
+            vectorFrequency[0].addOneToCode();
+        }
+        else {
+            generateCode(vectorFrequency.begin(), vectorFrequency.end(), str.size());
+        }
 
         std::unordered_map<wchar_t, std::string> codesMap;
         for (const CharInfo<wchar_t>& charInfo : vectorFrequency) {
@@ -178,7 +199,7 @@ public:
     }
 
     //english decode bits-mode
-    std::string decodeStringBits(const std::string& encodedStr, const EncryptionInfo<MapCodesEnglish>& encryptionInfo) {
+    std::string decodeStringBits(const std::string& encodedStr, const EncodingInfo<MapCodesEnglish>& encryptionInfo) {
         std::string encodedStrBits;
 
         for (int i = 0; i < encodedStr.size(); ++i) {

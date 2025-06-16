@@ -22,6 +22,8 @@ int main() {
     // std::cout << strDecoded << '\n';
 
 
+
+
     // CodeHelper helper;
     // std::wstring strToEncode = L"Könnt ihr mich fühlen? — Wir fühlen dich";
     // std::pair<std::string, MapCodesNonEnglish> pair = helper.encodeString(strToEncode);
@@ -43,21 +45,21 @@ int main() {
 
 
 
-    CodeHelper helper;
-    std::string strToEncode = "aaaaaaaaaaaaaaa";
-    std::pair<std::string, EncryptionInfo<MapCodesEnglish>> pair = helper.encodeStringBits(strToEncode);
-    std::string result = pair.first;
-    std::cout << result << '\n';
-
-    for (auto pairCodeChar : pair.second.mapCodes) {
-        std::cout << pairCodeChar.second << " - " << pairCodeChar.first << '\n';
-    }
-    std::cout << '\n';
-
-    std::string strDecoded = helper.decodeStringBits(result, pair.second);
-    std::cout << strDecoded << '\n';
-
-    std::cout << "end.\n";
+    // CodeHelper helper;
+    // std::string strToEncode = "a";
+    // std::pair<std::string, EncodingInfo<MapCodesEnglish>> pair = helper.encodeStringBits(strToEncode);
+    // std::string result = pair.first;
+    // std::cout << result << '\n';
+    //
+    // for (auto pairCodeChar : pair.second.mapCodes) {
+    //     std::cout << pairCodeChar.second << " - " << pairCodeChar.first << '\n';
+    // }
+    // std::cout << '\n';
+    //
+    // std::string strDecoded = helper.decodeStringBits(result, pair.second);
+    // std::cout << strDecoded << '\n';
+    //
+    // std::cout << "end.\n";
 
     return 0;
 }
