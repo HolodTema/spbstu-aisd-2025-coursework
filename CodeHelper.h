@@ -19,6 +19,9 @@ public:
     std::pair<std::string, MapCodesNonEnglish> encodeString(const std::wstring& str) {
         VectorFrequencyNonEnglish vectorFrequency = createFrequencyVector(str);
 
+        for (auto charInfo : vectorFrequency) {
+            std::wcout << charInfo.getChar() << L" - " << charInfo.getFrequency() << L'\n';
+        }
         generateCode(vectorFrequency.begin(), vectorFrequency.end(), str.size());
 
         std::unordered_map<wchar_t, std::string> codesMap;
@@ -318,6 +321,11 @@ private:
 
     std::string convertCharToBinCode(char ch) {
         std::string result;
+
+        // if (ch < 0) {
+        //     result += '1';
+        //     ch *= -1;
+        // }
         while (ch > 1) {
             result += (ch % 2);
             ch /= 2;
