@@ -56,6 +56,8 @@ int main() {
 
     std::string strDecoded = helper.decodeStringBits(result, pair.second);
     std::cout << strDecoded << '\n';
+
     std::cout << "end.\n";
+
     return 0;
 }

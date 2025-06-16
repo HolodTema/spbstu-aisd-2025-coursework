@@ -9,7 +9,7 @@
 #include <cmath>
 #include "SmartBoolArray.h"
 
-using MapCodesEnglish = std::unordered_map<std::string, char>;
+using MapCodesEnglish = std::unordered_map<std::string, unsigned char>;
 using MapCodesNonEnglish = std::unordered_map<std::string, wchar_t>;
 
 class CodeHelper {
@@ -45,8 +45,8 @@ public:
 
         generateCode(vectorFrequency.begin(), vectorFrequency.end(), str.size());
 
-        std::unordered_map<char, std::string> codesMap;
-        for (const CharInfo<char>& charInfo : vectorFrequency) {
+        std::unordered_map<unsigned char, std::string> codesMap;
+        for (const CharInfo<unsigned char>& charInfo : vectorFrequency) {
             codesMap[charInfo.getChar()] = charInfo.getCode();
         }
 
@@ -66,15 +66,15 @@ public:
 
         generateCode(vectorFrequency.begin(), vectorFrequency.end(), str.size());
 
-        std::unordered_map<char, std::string> codesMap;
-        for (const CharInfo<char>& charInfo : vectorFrequency) {
+        std::unordered_map<unsigned char, std::string> codesMap;
+        for (const CharInfo<unsigned char>& charInfo : vectorFrequency) {
             codesMap[charInfo.getChar()] = charInfo.getCode();
         }
 
         std::string result;
         std::string singleChar;
         std::string code;
-        for (char messageChar : str) {
+        for (unsigned char messageChar : str) {
             code = codesMap[messageChar];
             for (char codeChar : code) {
                 if (singleChar.size() < 8) {
@@ -83,7 +83,11 @@ public:
                 else {
                     result += convertBinCodeToChar(singleChar);
                     singleChar.clear();
+                    singleChar += codeChar;
                 }
+            }
+            if (singleChar.size() <= 8) {
+
             }
         }
 
@@ -105,9 +109,9 @@ public:
         std::string result;
         std::string singleChar;
         std::string code;
-        for (char messageChar : str) {
+        for (unsigned char messageChar : str) {
             code = codesMap[messageChar];
-            for (char codeChar : code) {
+            for (unsigned char codeChar : code) {
                 if (singleChar.size() < 8) {
                     singleChar += codeChar;
                 }
@@ -161,11 +165,11 @@ public:
 
     //english decode bits-mode
     std::string decodeStringBits(const std::string& encodedStr, const MapCodesEnglish& mapCodes) {
-        std::string result;
         std::string encodedStrBits;
 
-        for (const char& encodedChar: encodedStr) {
-            encodedStrBits += convertCharToBinCode(encodedChar);
+        for (int i = 0; i < encodedStr.size(); ++i) {
+            unsigned char ch = encodedStr[i];
+            encodedStrBits += convertCharToBinCode(ch);
         }
 
         return decodeString(encodedStrBits, mapCodes);
@@ -219,7 +223,7 @@ private:
         std::string code_;
     };
 
-    using VectorFrequencyEnglish = std::vector<CharInfo<char>>;
+    using VectorFrequencyEnglish = std::vector<CharInfo<unsigned char>>;
     using VectorFrequencyNonEnglish = std::vector<CharInfo<wchar_t>>;
 
     VectorFrequencyNonEnglish createFrequencyVector(const std::wstring& str) {
@@ -248,21 +252,21 @@ private:
         for (std::pair<char, int> pair : frequencyMap) {
             result.emplace_back(pair.first, pair.second);
         }
-        auto comparator = [](const CharInfo<char>& lhs, const CharInfo<char>& rhs) {return lhs.getFrequency() > rhs.getFrequency(); };
+        auto comparator = [](const CharInfo<unsigned char>& lhs, const CharInfo<unsigned char>& rhs) {return lhs.getFrequency() > rhs.getFrequency(); };
         std::sort(result.begin(), result.end(), comparator);
 
         return result;
     }
 
-    void generateCode(std::vector<CharInfo<wchar_t>>::iterator beginIter, std::vector<CharInfo<wchar_t>>::iterator endIter, int frequencyAmount) {
+    void generateCode(VectorFrequencyNonEnglish::iterator beginIter, VectorFrequencyNonEnglish::iterator endIter, int frequencyAmount) {
         if (beginIter + 1 == endIter) {
             return;
         }
 
         int freqSum = 0;
         int higherSum = 0;
-        std::vector<CharInfo<wchar_t>>::iterator splitIter = beginIter;
-        for (std::vector<CharInfo<wchar_t>>::iterator it = beginIter; it != endIter; ++it) {
+        VectorFrequencyNonEnglish::iterator splitIter = beginIter;
+        for (VectorFrequencyNonEnglish::iterator it = beginIter; it != endIter; ++it) {
             if (freqSum < frequencyAmount - freqSum) {
                 (*it).addZeroToCode();
                 ++splitIter;
@@ -277,15 +281,15 @@ private:
         generateCode(splitIter, endIter, frequencyAmount-higherSum);
     }
 
-    void generateCode(std::vector<CharInfo<char>>::iterator beginIter, std::vector<CharInfo<char>>::iterator endIter, int frequencyAmount) {
+    void generateCode(VectorFrequencyEnglish::iterator beginIter, VectorFrequencyEnglish::iterator endIter, int frequencyAmount) {
         if (beginIter + 1 == endIter) {
             return;
         }
 
         int freqSum = 0;
         int higherSum = 0;
-        std::vector<CharInfo<char>>::iterator splitIter = beginIter;
-        for (std::vector<CharInfo<char>>::iterator it = beginIter; it != endIter; ++it) {
+        VectorFrequencyEnglish::iterator splitIter = beginIter;
+        for (VectorFrequencyEnglish::iterator it = beginIter; it != endIter; ++it) {
             if (freqSum < frequencyAmount - freqSum) {
                 (*it).addZeroToCode();
                 ++splitIter;
@@ -309,28 +313,27 @@ private:
         return result;
     }
 
-    char convertBinCodeToChar(const std::string& str) {
+    std::string convertCharToBinCode(unsigned char ch) {
+        int ord = ch;
+        std::string result;
+        while (ord > 1) {
+            result = std::to_string(ord % 2) + result;
+            ord /= 2;
+        }
+        result = std::to_string(ord) + result;
+        while (result.size() < 8) {
+            result = '0' + result;
+        }
+        return result;
+    }
+
+    unsigned char convertBinCodeToChar(const std::string& str) {
         char result = 0;
         char bit = 0;
         for (int i = 0; i < str.size(); ++i) {
             bit = str[str.size()-1-i] - '0';
             result += bit*std::pow(2, i);
         }
-        return result;
-    }
-
-    std::string convertCharToBinCode(char ch) {
-        std::string result;
-
-        // if (ch < 0) {
-        //     result += '1';
-        //     ch *= -1;
-        // }
-        while (ch > 1) {
-            result += (ch % 2);
-            ch /= 2;
-        }
-        result += ch;
         return result;
     }
 };
