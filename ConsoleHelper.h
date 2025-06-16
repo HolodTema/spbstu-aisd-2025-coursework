@@ -70,7 +70,7 @@ private:
         if (isEnglish) {
             std::pair<std::string, std::string> pairEncodeData = getEncodeDataEnglish();
             if (pairEncodeData.first.size() != 0) {
-                std::cout << pairEncodeData.first;
+                std::wcout << std::wstring(pairEncodeData.first.begin(), pairEncodeData.first.end());
                 return 1;
             }
 
@@ -100,22 +100,22 @@ private:
                 return onErrorUnableToSaveResults();
             }
 
-            std::cout << "\nDone!\n";
-            std::cout << "Encoded text:\n";
-            std::cout << result << '\n';
-            std::cout << "Codes of encoding:\n";
-            std::cout << encodingCodes;
+            std::wcout << L"\nDone!\n";
+            std::wcout << L"Encoded text:\n";
+            std::wcout << std::wstring(result.begin(), result.end()) << '\n';
+            std::wcout << L"Codes of encoding:\n";
+            std::wcout << std::wstring(encodingCodes.begin(), encodingCodes.end());
             if (isBitMode) {
-                std::cout << "Amount of zero-fillers: " << zeroFillers << "\n";
+                std::wcout << L"Amount of zero-fillers: " << zeroFillers << "\n";
             }
-            std::cout << "\nAlso these results are saved in files:\n";
-            std::cout << "encoding_results.txt\nencoding.codes.txt\n";
+            std::wcout << L"\nAlso these results are saved in files:\n";
+            std::wcout << L"encoding_results.txt\nencoding.codes.txt\n";
             return 0;
         }
         else {
             std::pair<std::string, std::wstring> pairEncodeData = getEncodeDataNonEnglish();
             if (pairEncodeData.first.size() != 0) {
-                std::cout << pairEncodeData.first;
+                std::wcout << std::wstring(pairEncodeData.first.begin(), pairEncodeData.first.end()) << L'\n';
                 return 1;
             }
 
@@ -143,13 +143,13 @@ private:
                 return onErrorUnableToSaveResults();
             }
 
-            std::cout << "\nDone!\n";
-            std::cout << "Encoded text:\n";
-            std::cout << result << '\n';
-            std::cout << "Codes of encoding:\n";
+            std::wcout << "\nDone!\n";
+            std::wcout << "Encoded text:\n";
+            std::wcout << std::wstring(result.begin(), result.end()) << '\n';
+            std::wcout << "Codes of encoding:\n";
             std::wcout << encodingCodes;
-            std::cout << "\nAlso these results are saved in files:\n";
-            std::cout << "encoding_results.txt\nencoding.codes.txt\n";
+            std::wcout << "\nAlso these results are saved in files:\n";
+            std::wcout << "encoding_results.txt\nencoding.codes.txt\n";
             return 0;
         }
     }
@@ -167,28 +167,31 @@ private:
             return std::make_pair("Error: invalid option.\n", std::string());
         }
         if (optionFromStringFile == 1) {
-            std::cout << "Enter text to encode:\n";
-            std::string text;
-            std::getline(std::cin, text);
-            if (std::cin.fail()) {
+            std::wcout << "Enter text to encode:\n";
+            std::wstring text;
+
+            std::getline(std::wcin, text);
+            std::getline(std::wcin, text);
+
+            if (std::wcin.fail()) {
                 return std::make_pair("Error: unable to encode this text.\n", std::string());
             }
             if (text.size() == 0) {
                 return std::make_pair("Error: entered text is empty.\n", std::string());
             }
-            return std::make_pair(std::string(), text);
+            return std::make_pair(std::string(), convertWstringToString(text));
         }
         else if (optionFromStringFile == 2) {
             //from file
-            std::cout << "Enter relative path to file:\n";
-            std::string filePath;
-            std::cin >> filePath;
-            if (!std::cin) {
+            std::wcout << "Enter relative path to file:\n";
+            std::wstring filePath;
+            std::wcin >> filePath;
+            if (!std::wcin) {
                 return std::make_pair("Error: invalid file path.\n", std::string());
             }
 
             std::ifstream fis;
-            fis.open(filePath);
+            fis.open(convertWstringToString(filePath));
             if (!fis.is_open()) {
                 return std::make_pair("Error: invalid file path.\n", std::string());
             }
@@ -215,8 +218,9 @@ private:
             return std::make_pair("Error: invalid option.\n", std::wstring());
         }
         if (optionFromStringFile == 1) {
-            std::cout << "Enter text to encode:\n";
+            std::wcout << "Enter text to encode:\n";
             std::wstring text;
+            std::getline(std::wcin, text);
             std::getline(std::wcin, text);
             if (std::wcin.fail()) {
                 return std::make_pair("Error: unable to encode this text.\n", std::wstring());
@@ -228,15 +232,16 @@ private:
         }
         else if (optionFromStringFile == 2) {
             //from file
-            std::cout << "Enter relative path to file:\n";
-            std::string filePath;
-            std::cin >> filePath;
-            if (!std::cin) {
+            std::wcout << "Enter relative path to file:\n";
+            std::wstring filePath;
+            std::wcin >> filePath;
+            if (!std::wcin) {
                 return std::make_pair("Error: invalid file path.\n", std::wstring());
             }
 
             std::wifstream wfis;
-            wfis.open(filePath);
+            std::string strFilePath = convertWstringToString(filePath);
+            wfis.open(strFilePath);
             if (!wfis.is_open()) {
                 return std::make_pair("Error: invalid file path.\n", std::wstring());
             }
@@ -248,6 +253,9 @@ private:
             }
             wfis.close();
 
+            if (text.size() == 0) {
+                return std::make_pair("Error: entered text is empty.\n", std::wstring());
+            }
             return std::make_pair(std::string(), text);
         }
         else {
@@ -257,30 +265,30 @@ private:
 
 
     static std::pair<std::string, DecodeDataEnglish> getDecodeDataEnglish() {
-        std::cout << "\nEnter option:\n1. enter string to decode\n2. choose text file to decode\n";
+        std::wcout << "\nEnter option:\n1. enter string to decode\n2. choose text file to decode\n";
         int optionFromStringFile = 0;
-        std::cin >> optionFromStringFile;
-        if (!std::cin) {
+        std::wcin >> optionFromStringFile;
+        if (!std::wcin) {
             return std::make_pair("Error: invalid option.\n", DecodeDataEnglish());
         }
         if (optionFromStringFile == 1) {
             //from string
-            std::cout << "Enter text to decode:\n";
-            std::string text;
-            std::getline(std::cin, text);
-            if (std::cin.fail()) {
+            std::wcout << "Enter text to decode:\n";
+            std::wstring text;
+            std::getline(std::wcin, text);
+            if (std::wcin.fail()) {
                 return std::make_pair("Error: entered text is invalid.\n", DecodeDataEnglish());
             }
             if (text.size() == 0) {
                 return std::make_pair("Error: the text to decode is empty.\n", DecodeDataEnglish());
             }
 
-            std::cout << "Enter file path of key codes:\n";
-            std::string filePath;
-            std::cin >> filePath;
+            std::wcout << "Enter file path of key codes:\n";
+            std::wstring filePath;
+            std::wcin >> filePath;
 
             std::ifstream fis;
-            fis.open(filePath);
+            fis.open(convertWstringToString(filePath));
             if (!fis.is_open()) {
                 return std::make_pair("Error: unable to open this file.\n", DecodeDataEnglish());
             }
@@ -290,7 +298,7 @@ private:
             }
 
             DecodeDataEnglish decodeData;
-            decodeData.encodedText = text;
+            decodeData.encodedText = convertWstringToString(text);
             decodeData.mapCodes = pair.first;
             return std::make_pair(std::string(), decodeData);
         }
