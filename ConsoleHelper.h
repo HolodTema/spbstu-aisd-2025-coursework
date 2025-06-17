@@ -238,19 +238,33 @@ private:
             if (!std::wcin) {
                 return std::make_pair("Error: invalid file path.\n", std::wstring());
             }
-
-            std::wifstream wfis;
             std::string strFilePath = convertWstringToString(filePath);
+////////
+            // std::ifstream fis(strFilePath);
+            // fis.imbue(std::locale(std::locale(), new std::codecvt_utf8<wchar_t>()));
+            //
+            // std::string textLine;
+            // std::string text;
+            // while (std::getline(fis, textLine)) {
+            //     text += textLine + '\n';
+            // }
+            ///
+            std::wifstream wfis(strFilePath, std::ios::in);
+            const std::locale localeUtf8 = std::locale(std::locale(), new std::codecvt_utf8<wchar_t>());
+            wfis.imbue(localeUtf8);
             wfis.open(strFilePath);
             if (!wfis.is_open()) {
                 return std::make_pair("Error: invalid file path.\n", std::wstring());
             }
+            std::wcout << "wfis state: fail = " << wfis.fail() << "; bad = " << wfis.bad() << "; eof = " << wfis.eof() << "\n";
 
             std::wstring text;
-            std::wstring fileLine;
-            while (std::getline(wfis, fileLine)) {
-                text += fileLine;
-            }
+            wfis.seekg(0, std::wios::end);
+            text.resize(wfis.tellg());
+            wfis.seekg(0, std::wios::beg);
+            wfis.read(text.data(), text.size());
+
+            std::wcout << "wfis state: fail = " << wfis.fail() << "; bad = " << wfis.bad() << "; eof = " << wfis.eof() << "\n";
             wfis.close();
 
             if (text.size() == 0) {
