@@ -325,13 +325,17 @@ private:
         if (!std::wcin) {
             return std::make_pair("Error: invalid file path.\n", DecodeDataEnglish());
         }
-        std::string encodedText;
 
         std::ifstream fis(convertWstringToString(filePathEncodedText));
         if (!fis.is_open()) {
             return std::make_pair("Error: invalid file path.\n", DecodeDataEnglish());
         }
-        fis >> encodedText;
+
+        std::string encodedText;
+        std::string encodedTextLine;
+        while (std::getline(fis, encodedTextLine, '\n')) {
+            encodedText += encodedTextLine + '\n';
+        }
         if (encodedText.size() == 0) {
             return std::make_pair("Error: this file is empty. Nothing to decode.\n", DecodeDataEnglish());
         }
@@ -373,8 +377,8 @@ private:
             return std::make_pair("Error: invalid file path.\n", DecodeDataNonEnglish());
         }
         std::string encodedTextLine;
-        while (std::getline(fis, encodedTextLine)) {
-            encodedText += encodedTextLine;
+        while (std::getline(fis, encodedTextLine, '\n')) {
+            encodedText += encodedTextLine + '\n';
         }
         if (encodedText.size() == 0) {
             return std::make_pair("Error: this file is empty. Nothing to decode.\n", DecodeDataNonEnglish());
