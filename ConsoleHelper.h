@@ -94,6 +94,7 @@ private:
 
 
             std::string encodingCodes = convertMapCodesToString(mapCodes);
+            std::string encodingCodesPreview = convertMapCodesToStringPreview(mapCodes);
             bool isSuccessful = saveEncodingResults(result, encodingCodes, isBitMode, zeroFillers);
             if (!isSuccessful) {
                 return onErrorUnableToSaveResults();
@@ -103,7 +104,7 @@ private:
             std::wcout << L"Encoded text:\n";
             std::wcout << std::wstring(result.begin(), result.end()) << '\n';
             std::wcout << L"Codes of encoding:\n";
-            std::wcout << std::wstring(encodingCodes.begin(), encodingCodes.end());
+            std::wcout << std::wstring(encodingCodesPreview.begin(), encodingCodesPreview.end());
             if (isBitMode) {
                 std::wcout << L"Amount of zero-fillers: " << zeroFillers << "\n";
             }
@@ -137,6 +138,7 @@ private:
             }
 
             std::wstring encodingCodes = convertMapCodesToString(mapCodes);
+            std::wstring encodingCodesPreview = convertMapCodesToStringPreview(mapCodes);
             bool isSuccessful = saveEncodingResults(result, encodingCodes, isBitMode, zeroFillers);
             if (!isSuccessful) {
                 return onErrorUnableToSaveResults();
@@ -146,7 +148,7 @@ private:
             std::wcout << "Encoded text:\n";
             std::wcout << std::wstring(result.begin(), result.end()) << '\n';
             std::wcout << "Codes of encoding:\n";
-            std::wcout << encodingCodes;
+            std::wcout << encodingCodesPreview;
             std::wcout << "\nAlso these results are saved in files:\n";
             std::wcout << "encoding_results.txt\nencoding.codes.txt\n";
             return 0;
@@ -155,7 +157,7 @@ private:
 
     static int onOptionDecodeChosen(bool isEnglish, const bool& isBitMode) {
         if (isEnglish) {
-            std::pair<std::string, DecodeDataEnglish> pairDecodeData = getDecodeDataEnglish();
+            std::pair<std::string, DecodeDataEnglish> pairDecodeData = getDecodeDataEnglish(isBitMode);
             if (!pairDecodeData.first.empty()) {
                 std::wcout << std::wstring(pairDecodeData.first.begin(), pairDecodeData.first.end());
                 return 1;
@@ -184,7 +186,7 @@ private:
             std::wcout << L"decoding_results.txt\n";
         }
         else {
-            std::pair<std::string, DecodeDataNonEnglish> pairDecodeData = getDecodeDataNonEnglish();
+            std::pair<std::string, DecodeDataNonEnglish> pairDecodeData = getDecodeDataNonEnglish(isBitMode);
             if (!pairDecodeData.first.empty()) {
                 std::wcout << std::wstring(pairDecodeData.first.begin(), pairDecodeData.first.end());
                 return 1;
@@ -318,7 +320,7 @@ private:
         }
     }
 
-    static std::pair<std::string, DecodeDataEnglish> getDecodeDataEnglish() {
+    static std::pair<std::string, DecodeDataEnglish> getDecodeDataEnglish(const bool& bitsMode) {
         std::wcout << "\nEnter path to the file with encoded text:\n";
         std::wstring filePathEncodedText;
         std::wcin >> filePathEncodedText;
@@ -334,7 +336,10 @@ private:
         std::string encodedText;
         std::string encodedTextLine;
         while (std::getline(fis, encodedTextLine, '\n')) {
-            encodedText += encodedTextLine + '\n';
+            encodedText += encodedTextLine;
+            if (bitsMode) {
+                encodedText += '\n';
+            }
         }
         if (encodedText.size() == 0) {
             return std::make_pair("Error: this file is empty. Nothing to decode.\n", DecodeDataEnglish());
@@ -363,7 +368,7 @@ private:
         return std::make_pair(std::string(), decodeData);
     }
 
-    static std::pair<std::string, DecodeDataNonEnglish> getDecodeDataNonEnglish() {
+    static std::pair<std::string, DecodeDataNonEnglish> getDecodeDataNonEnglish(const bool& bitsMode) {
         std::wcout << "\nEnter path to the file with encoded text:\n";
         std::wstring filePathEncodedText;
         std::wcin >> filePathEncodedText;
@@ -378,7 +383,10 @@ private:
         }
         std::string encodedTextLine;
         while (std::getline(fis, encodedTextLine, '\n')) {
-            encodedText += encodedTextLine + '\n';
+            encodedText += encodedTextLine;
+            if (bitsMode) {
+                encodedText += '\n';
+            }
         }
         if (encodedText.size() == 0) {
             return std::make_pair("Error: this file is empty. Nothing to decode.\n", DecodeDataNonEnglish());
@@ -521,8 +529,10 @@ private:
 
     static std::wstring convertMapCodesToString(const MapCodesNonEnglish& mapCodes) {
         std::wstring result;
+        unsigned int ord = 0;
         for (auto it = mapCodes.begin(); it != mapCodes.end(); it++) {
-            result += it->second;
+            ord = it->second;
+            result += std::to_wstring(ord);
             result += L" - ";
             result += std::wstring(it->first.begin(), it->first.end());
             result += L"\n";
@@ -531,6 +541,19 @@ private:
     }
 
     static std::string convertMapCodesToString(const MapCodesEnglish& mapCodes) {
+        std::string result;
+        unsigned int ord = 0;
+        for (auto it = mapCodes.begin(); it != mapCodes.end(); it++) {
+            ord = it->second;
+            result += std::to_string(ord);
+            result += " - ";
+            result += it->first;
+            result += "\n";
+        }
+        return result;
+    }
+
+    static std::string convertMapCodesToStringPreview(const MapCodesEnglish& mapCodes) {
         std::string result;
         for (auto it = mapCodes.begin(); it != mapCodes.end(); it++) {
             result += it->second;
@@ -541,20 +564,37 @@ private:
         return result;
     }
 
+    static std::wstring convertMapCodesToStringPreview(const MapCodesNonEnglish& mapCodes) {
+        std::wstring result;
+        for (auto it = mapCodes.begin(); it != mapCodes.end(); it++) {
+            result += it->second;
+            result += L" - ";
+            result += std::wstring(it->first.begin(), it->first.end());
+            result += L"\n";
+        }
+        return result;
+    }
+
     static std::pair<EncodingInfo<MapCodesNonEnglish>, bool> parseMapCodesFromFile(std::wifstream& in) {
         EncodingInfo<MapCodesNonEnglish> encodingInfo;
 
         std::wstring fileLine;
         std::wstring code;
         wchar_t character;
+        wchar_t dash;
+        unsigned int ord;
         std::wstring header;
         std::getline(in, header);
         encodingInfo.fillZeroes = convertCharToDigit(header[header.size() - 1]);
         std::wcout << "zero fillers = " << encodingInfo.fillZeroes << "\n";
         while (std::getline(in, fileLine)) {
-            if (fileLine.size() >= 4) {
-                character = fileLine[0];
-                code = fileLine.substr(4, fileLine.size());
+            if (fileLine.size() > 3) {
+                std::wstringstream stream;
+                stream << fileLine;
+                stream >> ord;
+                character = wchar_t(ord);
+                stream >> dash;
+                stream >> code;
                 encodingInfo.mapCodes[convertWstringToString(code)] = character;
             }
         }
@@ -567,15 +607,21 @@ private:
 
         std::string fileLine;
         std::string code;
+        char dash;
         char character;
+        unsigned int ord;
         std::string header;
         std::getline(in, header);
         encodingInfo.fillZeroes = convertCharToDigit(header[header.size() - 1]);
         std::wcout << "zero fillers = " << encodingInfo.fillZeroes << "\n";
         while (std::getline(in, fileLine)) {
-            if (fileLine.size() >= 4) {
-                character = fileLine[0];
-                code = fileLine.substr(4, fileLine.size());
+            if (fileLine.size() > 3) {
+                std::stringstream stream;
+                stream << fileLine;
+                stream >> ord;
+                character = char(ord);
+                stream >> dash;
+                stream >> code;
                 encodingInfo.mapCodes[code] = character;
             }
         }

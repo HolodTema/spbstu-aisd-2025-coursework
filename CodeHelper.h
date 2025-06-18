@@ -9,8 +9,6 @@
 #include <cmath>
 #include <ranges>
 
-#include "SmartBoolArray.h"
-
 using MapCodesEnglish = std::unordered_map<std::string, unsigned char>;
 using MapCodesNonEnglish = std::unordered_map<std::string, wchar_t>;
 
